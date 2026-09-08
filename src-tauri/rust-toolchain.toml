@@ -1,0 +1,5 @@
+# Fija la versión de Rust para builds reproducibles (tú, otra máquina, CI).
+# rustup instala este toolchain automáticamente al compilar en esta carpeta.
+[toolchain]
+channel = "1.98.1"
+components = ["rustfmt", "clippy"]

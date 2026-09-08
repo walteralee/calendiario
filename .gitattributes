@@ -1,0 +1,21 @@
+# Normaliza saltos de línea: LF en el repo, cada quien en su checkout
+* text=auto eol=lf
+
+# Scripts de Windows: siempre CRLF (si no, cmd.exe puede fallar)
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Binarios (que Git no intente hacer diff ni convertir)
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.icns  binary
+*.woff  binary
+*.woff2 binary
+
+# Lockfiles: generados, colapsar en diffs y no contar para estadísticas de lenguaje
+package-lock.json  linguist-generated -diff
+src-tauri/Cargo.lock linguist-generated -diff

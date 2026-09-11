@@ -34,3 +34,5 @@ dist-ssr
 
 # Config local de Claude Code
 .claude/settings.local.json
+# Skills de Claude Code (herramienta local; subir alguna a mano si interesa para el portfolio)
+.claude/skills/

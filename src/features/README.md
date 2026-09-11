@@ -2,7 +2,7 @@
 
 Una carpeta por **dominio funcional** de la app. Cada feature es autocontenida.
 
-Dominios: calendar · journal · media · tasks · events · metrics · analytics · search · settings
+Dominios: auth · calendar · journal · media · tasks · events · metrics · analytics · search · settings
 
 Estructura recomendada dentro de cada feature:
 

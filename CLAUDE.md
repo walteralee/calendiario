@@ -37,7 +37,7 @@ calendiario - app/
 ├── src/                      FRONTEND
 │   ├── main.tsx  App.tsx  index.css
 │   ├── components/  (+ ui/ = shadcn)
-│   ├── features/   calendar journal media tasks events metrics analytics search settings
+│   ├── features/   auth calendar journal media tasks events metrics analytics search settings
 │   ├── pages/      YearView MonthView WeekView DayView Analytics
 │   ├── lib/        utils.ts (cn), invoke tipado, helpers de fecha
 │   ├── hooks/  stores/ (Zustand)  types/ (espejo de structs Rust)

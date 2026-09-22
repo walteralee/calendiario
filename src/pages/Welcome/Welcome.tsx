@@ -20,7 +20,7 @@ const HIGHLIGHTED_CELLS = new Set([
 
 function Welcome() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [nombre, setNombre] = useState("");
   const [password, setPassword] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
@@ -66,11 +66,11 @@ function Welcome() {
         <div className="flex flex-col justify-center p-10 sm:p-14">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
-              type="email"
-              placeholder="Correo electrónico"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              placeholder="Nombre"
+              autoComplete="username"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
               className="h-14 rounded-xl border-neutral-200 px-5 text-base"
             />
             <Input

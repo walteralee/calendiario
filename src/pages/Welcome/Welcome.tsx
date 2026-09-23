@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { invoke } from "@tauri-apps/api/core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -18,15 +19,36 @@ const HIGHLIGHTED_CELLS = new Set([
   "3-3",
 ]);
 
+// Qué muestra el panel derecho según el perfil guardado en la BD.
+// "cargando": aún no se sabe → no se pinta nada (evita parpadeos).
+type Modo = "cargando" | "crear" | "login";
+
+const INPUT_CLASS = "h-14 rounded-xl border-neutral-200 px-5 text-base";
+const BOTON_CLASS =
+  "h-14 rounded-xl bg-[#8a3a1e] text-base text-white hover:bg-[#732f18]";
+
 function Welcome() {
   const navigate = useNavigate();
-  const [nombre, setNombre] = useState("");
-  const [password, setPassword] = useState("");
+  const [modo, setModo] = useState<Modo>("cargando");
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // TODO: conectar con el backend de auth (siguiente paso).
-  }
+  useEffect(() => {
+    async function decidir() {
+      const existe = await invoke<boolean>("perfil_existe");
+      if (!existe) {
+        setModo("crear");
+        return;
+      }
+      const conPin = await invoke<boolean>("tiene_pin");
+      if (conPin) {
+        setModo("login");
+      } else {
+        navigate("/app", { replace: true });
+      }
+    }
+    void decidir();
+  }, [navigate]);
+
+  if (modo === "cargando") return null;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5f3ef] p-4">
@@ -62,43 +84,123 @@ function Welcome() {
           </div>
         </div>
 
-        {/* Login: acceso directo a la app */}
+        {/* Acceso: crear el PIN la primera vez, o introducirlo después */}
         <div className="flex flex-col justify-center p-10 sm:p-14">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              type="text"
-              placeholder="Nombre"
-              autoComplete="username"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="h-14 rounded-xl border-neutral-200 px-5 text-base"
-            />
-            <Input
-              type="password"
-              placeholder="Contraseña"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="h-14 rounded-xl border-neutral-200 px-5 text-base"
-            />
-            <Button
-              type="submit"
-              className="h-14 rounded-xl bg-[#8a3a1e] text-base text-white hover:bg-[#732f18]"
-            >
-              Iniciar sesión
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-14 rounded-xl border-neutral-200 text-base text-neutral-700 hover:bg-neutral-50"
-              onClick={() => navigate("/register")}
-            >
-              Registrarse
-            </Button>
-          </form>
+          {modo === "crear" ? (
+            <CrearPerfil onHecho={() => navigate("/app")} />
+          ) : (
+            <IniciarSesion onHecho={() => navigate("/app")} />
+          )}
         </div>
       </div>
     </main>
+  );
+}
+
+function CrearPerfil({ onHecho }: { onHecho: () => void }) {
+  const [pin, setPin] = useState("");
+  const [confirmarPin, setConfirmarPin] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (pin && pin !== confirmarPin) {
+      setError("El PIN y su confirmación no coinciden.");
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      await invoke("crear_perfil", { pin: pin || null });
+      onHecho();
+    } catch (err) {
+      setError(typeof err === "string" ? err : "No se pudo crear el perfil.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <Input
+        type="password"
+        placeholder="PIN (opcional)"
+        autoComplete="new-password"
+        value={pin}
+        onChange={(e) => {
+          setPin(e.target.value);
+          setError(null);
+        }}
+        className={INPUT_CLASS}
+      />
+      {pin && (
+        <Input
+          type="password"
+          placeholder="Confirmar PIN"
+          autoComplete="new-password"
+          value={confirmarPin}
+          aria-invalid={error !== null}
+          onChange={(e) => {
+            setConfirmarPin(e.target.value);
+            setError(null);
+          }}
+          className={INPUT_CLASS}
+        />
+      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <Button type="submit" disabled={enviando} className={BOTON_CLASS}>
+        Empezar
+      </Button>
+    </form>
+  );
+}
+
+function IniciarSesion({ onHecho }: { onHecho: () => void }) {
+  const [pin, setPin] = useState("");
+  const [incorrecto, setIncorrecto] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    setEnviando(true);
+    try {
+      const coincide = await invoke<boolean>("verificar_pin", { pin });
+      if (coincide) {
+        onHecho();
+      } else {
+        setIncorrecto(true);
+      }
+    } catch {
+      setIncorrecto(true);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <Input
+        type="password"
+        placeholder="PIN"
+        autoComplete="current-password"
+        autoFocus
+        value={pin}
+        aria-invalid={incorrecto}
+        onChange={(e) => {
+          setPin(e.target.value);
+          setIncorrecto(false);
+        }}
+        className={INPUT_CLASS}
+      />
+      {incorrecto && <p className="text-sm text-destructive">PIN incorrecto</p>}
+      <Button type="submit" disabled={enviando} className={BOTON_CLASS}>
+        Iniciar sesión
+      </Button>
+    </form>
   );
 }
 

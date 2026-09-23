@@ -21,7 +21,8 @@ const HIGHLIGHTED_CELLS = new Set([
 
 // Qué muestra el panel derecho según el perfil guardado en la BD.
 // "cargando": aún no se sabe → no se pinta nada (evita parpadeos).
-type Modo = "cargando" | "crear" | "login";
+// "error": no se pudo leer el perfil → mensaje + botón para reintentar.
+type Modo = "cargando" | "crear" | "login" | "error";
 
 const INPUT_CLASS = "h-14 rounded-xl border-neutral-200 px-5 text-base";
 const BOTON_CLASS =
@@ -30,23 +31,34 @@ const BOTON_CLASS =
 function Welcome() {
   const navigate = useNavigate();
   const [modo, setModo] = useState<Modo>("cargando");
+  // Cambiarlo vuelve a lanzar la comprobación del perfil (botón "Reintentar").
+  const [intento, setIntento] = useState(0);
 
   useEffect(() => {
     async function decidir() {
-      const existe = await invoke<boolean>("perfil_existe");
-      if (!existe) {
-        setModo("crear");
-        return;
-      }
-      const conPin = await invoke<boolean>("tiene_pin");
-      if (conPin) {
-        setModo("login");
-      } else {
-        navigate("/app", { replace: true });
+      try {
+        const existe = await invoke<boolean>("profile_exists");
+        if (!existe) {
+          setModo("crear");
+          return;
+        }
+        const conPin = await invoke<boolean>("has_pin");
+        if (conPin) {
+          setModo("login");
+        } else {
+          navigate("/app", { replace: true });
+        }
+      } catch {
+        setModo("error");
       }
     }
     void decidir();
-  }, [navigate]);
+  }, [navigate, intento]);
+
+  function reintentar() {
+    setModo("cargando");
+    setIntento((n) => n + 1);
+  }
 
   if (modo === "cargando") return null;
 
@@ -86,10 +98,19 @@ function Welcome() {
 
         {/* Acceso: crear el PIN la primera vez, o introducirlo después */}
         <div className="flex flex-col justify-center p-10 sm:p-14">
-          {modo === "crear" ? (
-            <CrearPerfil onHecho={() => navigate("/app")} />
-          ) : (
+          {modo === "crear" && <CrearPerfil onHecho={() => navigate("/app")} />}
+          {modo === "login" && (
             <IniciarSesion onHecho={() => navigate("/app")} />
+          )}
+          {modo === "error" && (
+            <div className="flex flex-col gap-4">
+              <p role="alert" className="text-base text-neutral-700">
+                No se pudo comprobar tu perfil. Inténtalo de nuevo.
+              </p>
+              <Button onClick={reintentar} className={BOTON_CLASS}>
+                Reintentar
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -114,7 +135,7 @@ function CrearPerfil({ onHecho }: { onHecho: () => void }) {
 
     setEnviando(true);
     try {
-      await invoke("crear_perfil", { pin: pin || null });
+      await invoke("create_profile", { pin: pin || null });
       onHecho();
     } catch (err) {
       setError(typeof err === "string" ? err : "No se pudo crear el perfil.");
@@ -168,7 +189,7 @@ function IniciarSesion({ onHecho }: { onHecho: () => void }) {
 
     setEnviando(true);
     try {
-      const coincide = await invoke<boolean>("verificar_pin", { pin });
+      const coincide = await invoke<boolean>("verify_pin", { pin });
       if (coincide) {
         onHecho();
       } else {

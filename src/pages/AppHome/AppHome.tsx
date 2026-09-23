@@ -33,7 +33,10 @@ function CambiarPin({ onCerrar }: { onCerrar: () => void }) {
 
     setEnviando(true);
     try {
-      await invoke("actualizar_pin", { pinActual, pinNuevo: pinNuevo || null });
+      await invoke("update_pin", {
+        currentPin: pinActual,
+        newPin: pinNuevo || null,
+      });
       onCerrar();
     } catch {
       setIncorrecto(true);

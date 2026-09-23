@@ -3,36 +3,36 @@ use tauri::async_runtime::spawn_blocking;
 
 use super::repository;
 
-const PIN_INCORRECTO: &str = "PIN incorrecto";
+const WRONG_PIN: &str = "PIN incorrecto";
 
-pub async fn perfil_existe(pool: &SqlitePool) -> Result<bool, String> {
-    let perfil = repository::obtener_perfil(pool)
+pub async fn profile_exists(pool: &SqlitePool) -> Result<bool, String> {
+    let profile = repository::get_profile(pool)
         .await
         .map_err(|e| e.to_string())?;
-    Ok(perfil.is_some())
+    Ok(profile.is_some())
 }
 
-pub async fn tiene_pin(pool: &SqlitePool) -> Result<bool, String> {
-    let perfil = repository::obtener_perfil(pool)
+pub async fn has_pin(pool: &SqlitePool) -> Result<bool, String> {
+    let profile = repository::get_profile(pool)
         .await
         .map_err(|e| e.to_string())?;
-    Ok(perfil.and_then(|p| p.pin_hash).is_some())
+    Ok(profile.and_then(|p| p.pin_hash).is_some())
 }
 
-pub async fn verificar_pin(pool: &SqlitePool, pin: String) -> Result<bool, String> {
-    let perfil = repository::obtener_perfil(pool)
+pub async fn verify_pin(pool: &SqlitePool, pin: String) -> Result<bool, String> {
+    let profile = repository::get_profile(pool)
         .await
         .map_err(|e| e.to_string())?;
 
-    let Some(pin_hash) = perfil.and_then(|p| p.pin_hash) else {
+    let Some(pin_hash) = profile.and_then(|p| p.pin_hash) else {
         return Ok(false);
     };
 
-    verificar(pin, pin_hash).await
+    verify_hash(pin, pin_hash).await
 }
 
-pub async fn crear_perfil(pool: &SqlitePool, pin: Option<String>) -> Result<(), String> {
-    if repository::obtener_perfil(pool)
+pub async fn create_profile(pool: &SqlitePool, pin: Option<String>) -> Result<(), String> {
+    if repository::get_profile(pool)
         .await
         .map_err(|e| e.to_string())?
         .is_some()
@@ -40,35 +40,35 @@ pub async fn crear_perfil(pool: &SqlitePool, pin: Option<String>) -> Result<(), 
         return Err("Ya existe un perfil.".into());
     }
 
-    let pin_hash = hashear(pin).await?;
+    let pin_hash = hash_pin(pin).await?;
 
-    repository::insertar_perfil(pool, pin_hash.as_deref())
+    repository::insert_profile(pool, pin_hash.as_deref())
         .await
         .map_err(|e| e.to_string())
 }
 
-/// Cambia o quita el PIN. Si el perfil no tiene PIN, `pin_actual` debe ir vacío.
-pub async fn actualizar_pin(
+/// Cambia o quita el PIN. Si el perfil no tiene PIN, `current_pin` debe ir vacío.
+pub async fn update_pin(
     pool: &SqlitePool,
-    pin_actual: String,
-    pin_nuevo: Option<String>,
+    current_pin: String,
+    new_pin: Option<String>,
 ) -> Result<(), String> {
-    let perfil = repository::obtener_perfil(pool)
+    let profile = repository::get_profile(pool)
         .await
         .map_err(|e| e.to_string())?
-        .ok_or_else(|| PIN_INCORRECTO.to_string())?;
+        .ok_or_else(|| WRONG_PIN.to_string())?;
 
-    let coincide = match perfil.pin_hash {
-        Some(hash) => verificar(pin_actual, hash).await?,
-        None => pin_actual.is_empty(),
+    let matches = match profile.pin_hash {
+        Some(hash) => verify_hash(current_pin, hash).await?,
+        None => current_pin.is_empty(),
     };
-    if !coincide {
-        return Err(PIN_INCORRECTO.into());
+    if !matches {
+        return Err(WRONG_PIN.into());
     }
 
-    let pin_hash = hashear(pin_nuevo).await?;
+    let pin_hash = hash_pin(new_pin).await?;
 
-    repository::actualizar_pin_hash(pool, pin_hash.as_deref())
+    repository::update_pin_hash(pool, pin_hash.as_deref())
         .await
         .map_err(|e| e.to_string())
 }
@@ -76,7 +76,7 @@ pub async fn actualizar_pin(
 // bcrypt es deliberadamente lento (CPU): se ejecuta en un hilo aparte para no
 // bloquear el runtime async de Tauri.
 
-async fn hashear(pin: Option<String>) -> Result<Option<String>, String> {
+async fn hash_pin(pin: Option<String>) -> Result<Option<String>, String> {
     let Some(pin) = pin.filter(|p| !p.is_empty()) else {
         return Ok(None);
     };
@@ -88,7 +88,7 @@ async fn hashear(pin: Option<String>) -> Result<Option<String>, String> {
         .map_err(|e| e.to_string())
 }
 
-async fn verificar(pin: String, pin_hash: String) -> Result<bool, String> {
+async fn verify_hash(pin: String, pin_hash: String) -> Result<bool, String> {
     spawn_blocking(move || bcrypt::verify(pin, &pin_hash))
         .await
         .map_err(|e| e.to_string())?

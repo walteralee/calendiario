@@ -48,7 +48,8 @@ function Welcome() {
         } else {
           navigate("/app", { replace: true });
         }
-      } catch {
+      } catch (err) {
+        console.error("[Welcome] No se pudo comprobar el perfil:", err);
         setModo("error");
       }
     }
@@ -138,6 +139,7 @@ function CrearPerfil({ onHecho }: { onHecho: () => void }) {
       await createProfile(pin || null);
       onHecho();
     } catch (err) {
+      console.error("[Welcome] No se pudo crear el perfil:", err);
       setError(typeof err === "string" ? err : "No se pudo crear el perfil.");
     } finally {
       setEnviando(false);
@@ -181,7 +183,7 @@ function CrearPerfil({ onHecho }: { onHecho: () => void }) {
 
 function IniciarSesion({ onHecho }: { onHecho: () => void }) {
   const [pin, setPin] = useState("");
-  const [incorrecto, setIncorrecto] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -193,10 +195,13 @@ function IniciarSesion({ onHecho }: { onHecho: () => void }) {
       if (coincide) {
         onHecho();
       } else {
-        setIncorrecto(true);
+        setError("PIN incorrecto");
       }
-    } catch {
-      setIncorrecto(true);
+    } catch (err) {
+      // Un PIN equivocado llega como `false`, nunca como excepción: esto es un
+      // fallo real (servidor caído, error interno…), no un PIN incorrecto.
+      console.error("[Welcome] No se pudo comprobar el PIN:", err);
+      setError("No se pudo comprobar el PIN.");
     } finally {
       setEnviando(false);
     }
@@ -210,14 +215,14 @@ function IniciarSesion({ onHecho }: { onHecho: () => void }) {
         autoComplete="current-password"
         autoFocus
         value={pin}
-        aria-invalid={incorrecto}
+        aria-invalid={error !== null}
         onChange={(e) => {
           setPin(e.target.value);
-          setIncorrecto(false);
+          setError(null);
         }}
         className={INPUT_CLASS}
       />
-      {incorrecto && <p className="text-sm text-destructive">PIN incorrecto</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" disabled={enviando} className={BOTON_CLASS}>
         Iniciar sesión
       </Button>

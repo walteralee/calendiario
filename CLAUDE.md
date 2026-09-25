@@ -88,8 +88,14 @@ dotnet ef migrations add <Nombre> --project src-dotnet --output-dir Data/Migrati
 npx shadcn@latest add <componente>     # añadir componente de UI
 ```
 
+`run.bat` (doble clic) = `npm run build` + `dotnet build src-dotnet` + abre el `.exe` de
+Debug; si falla un paso, se para. En la rama `main`, `run.bat` sigue lanzando la versión Tauri.
+
 `npm run dev` (Vite en :1420) sirve la UI sola, pero sin backend: las llamadas a `/api`
-fallan (no hay proxy configurado). `run.bat` sigue lanzando la versión Tauri.
+fallan con "Respuesta inesperada del servidor…" (no hay proxy configurado todavía).
+
+Frontend: `api.ts` siempre lanza un string al fallar (no 2xx, sin conexión, 2xx no-JSON), y
+todo `catch` de un componente debe dejar rastro con `console.error` — nunca tragarse el error.
 
 ## Estado y roadmap
 

@@ -25,7 +25,7 @@ function AppHome() {
 function CambiarPin({ onCerrar }: { onCerrar: () => void }) {
   const [pinActual, setPinActual] = useState("");
   const [pinNuevo, setPinNuevo] = useState("");
-  const [incorrecto, setIncorrecto] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,8 +35,11 @@ function CambiarPin({ onCerrar }: { onCerrar: () => void }) {
     try {
       await updatePin(pinActual, pinNuevo || null);
       onCerrar();
-    } catch {
-      setIncorrecto(true);
+    } catch (err) {
+      // Con el PIN actual mal, el backend ya responde "PIN incorrecto"; con
+      // cualquier otro fallo se muestra su mensaje real, no uno inventado.
+      console.error("[AppHome] No se pudo cambiar el PIN:", err);
+      setError(typeof err === "string" ? err : "No se pudo cambiar el PIN.");
     } finally {
       setEnviando(false);
     }
@@ -49,13 +52,13 @@ function CambiarPin({ onCerrar }: { onCerrar: () => void }) {
         placeholder="PIN actual"
         autoComplete="current-password"
         value={pinActual}
-        aria-invalid={incorrecto}
+        aria-invalid={error !== null}
         onChange={(e) => {
           setPinActual(e.target.value);
-          setIncorrecto(false);
+          setError(null);
         }}
       />
-      {incorrecto && <p className="text-sm text-destructive">PIN incorrecto</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <Input
         type="password"
         placeholder="PIN nuevo (opcional)"

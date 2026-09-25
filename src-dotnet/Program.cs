@@ -122,6 +122,9 @@ public static class Program
 
         var window = new PhotinoWindow()
             .SetTitle("Calendiario")
+            // Barra de título y barra de tareas. Photino.Native lo carga con
+            // LoadImageW desde una ruta de fichero: tiene que ser un .ico.
+            .SetIconFile(Path.Combine(AppContext.BaseDirectory, "Assets", "app-icon.ico"))
             .SetUseOsDefaultSize(false)
             .SetSize(1280, 800)
             .SetMinSize(900, 640)

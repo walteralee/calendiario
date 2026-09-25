@@ -8,6 +8,9 @@
     <!-- En Debug se ve la consola con los logs; en Release, solo la ventana. -->
     <OutputType>Exe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Release'">WinExe</OutputType>
+    <!-- Icono incrustado en Calendiario.exe (explorador de archivos). Mismo icono
+         de marca que la versión Tauri: generado de ../app-icon.svg. -->
+    <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +31,12 @@
        al ejecutable como wwwroot/, que es lo que sirve Kestrel. -->
   <ItemGroup>
     <Content Include="..\dist\**" LinkBase="wwwroot" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- El mismo .ico, suelto junto al ejecutable: Photino lo carga en tiempo de
+       ejecución desde una ruta de fichero para el icono de la ventana. -->
+  <ItemGroup>
+    <None Update="Assets\app-icon.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

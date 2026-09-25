@@ -60,6 +60,7 @@ calendiario - app/
 ├── src-dotnet/               BACKEND (C#)
 │   ├── Program.cs            Kestrel + CSP + estáticos/fallback SPA + Photino + log a fichero
 │   ├── ApiErrors.cs  AppException.cs
+│   ├── Assets/app-icon.ico   icono (de ../app-icon.svg): .exe (ApplicationIcon) + ventana (SetIconFile)
 │   ├── Data/                 Database.cs (carpeta de datos, migrar, conexiones)
 │   │                         CalendiarioDbContext.cs (solo esquema) · Migrations/
 │   └── Modules/Auth/         Profile · ProfileRepository · ProfileService · ProfileEndpoints

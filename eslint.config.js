@@ -7,7 +7,14 @@ import prettier from "eslint-config-prettier";
 
 export default tseslint.config([
   {
-    ignores: ["dist", "src-tauri/target", "src-tauri/gen", "src/components/ui"],
+    ignores: [
+      "dist",
+      "src-tauri/target",
+      "src-tauri/gen",
+      "src-dotnet/bin",
+      "src-dotnet/obj",
+      "src/components/ui",
+    ],
   },
   js.configs.recommended,
   tseslint.configs.recommended,

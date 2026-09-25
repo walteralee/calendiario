@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { updatePin } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -33,10 +33,7 @@ function CambiarPin({ onCerrar }: { onCerrar: () => void }) {
 
     setEnviando(true);
     try {
-      await invoke("update_pin", {
-        currentPin: pinActual,
-        newPin: pinNuevo || null,
-      });
+      await updatePin(pinActual, pinNuevo || null);
       onCerrar();
     } catch {
       setIncorrecto(true);

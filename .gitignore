@@ -21,6 +21,10 @@ dist-ssr
 *.tsbuildinfo
 .eslintcache
 
+# Salidas de compilación de .NET
+src-dotnet/bin/
+src-dotnet/obj/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

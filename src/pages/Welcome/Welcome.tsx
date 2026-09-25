@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
+import { createProfile, hasPin, profileExists, verifyPin } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -37,12 +37,12 @@ function Welcome() {
   useEffect(() => {
     async function decidir() {
       try {
-        const existe = await invoke<boolean>("profile_exists");
+        const existe = await profileExists();
         if (!existe) {
           setModo("crear");
           return;
         }
-        const conPin = await invoke<boolean>("has_pin");
+        const conPin = await hasPin();
         if (conPin) {
           setModo("login");
         } else {
@@ -135,7 +135,7 @@ function CrearPerfil({ onHecho }: { onHecho: () => void }) {
 
     setEnviando(true);
     try {
-      await invoke("create_profile", { pin: pin || null });
+      await createProfile(pin || null);
       onHecho();
     } catch (err) {
       setError(typeof err === "string" ? err : "No se pudo crear el perfil.");
@@ -189,7 +189,7 @@ function IniciarSesion({ onHecho }: { onHecho: () => void }) {
 
     setEnviando(true);
     try {
-      const coincide = await invoke<boolean>("verify_pin", { pin });
+      const coincide = await verifyPin(pin);
       if (coincide) {
         onHecho();
       } else {

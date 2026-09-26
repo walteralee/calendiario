@@ -65,9 +65,7 @@ calendiario - app/
 │   ├── Data/                 Database.cs (carpeta de datos, migrar, conexiones)
 │   │                         CalendiarioDbContext.cs (solo esquema) · Migrations/
 │   └── Modules/Auth/         Profile · ProfileRepository · ProfileService · ProfileEndpoints
-├── .config/dotnet-tools.json dotnet-ef (herramienta local)
-└── migrations/               .sql de SQLx de la versión Rust: SIN USO en esta rama (nada
-                              los lee; el esquema lo llevan las migraciones de EF Core)
+└── .config/dotnet-tools.json dotnet-ef (herramienta local)
 ```
 
 Alias TS/Vite: `@/*` → `src/*`.

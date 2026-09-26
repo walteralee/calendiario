@@ -19,8 +19,9 @@ Responder en español.
 - **Datos**: SQLite (`calendiario.db`). Consultas con **Dapper** (SQL explícito); esquema
   con **EF Core Migrations** (solo migraciones, EF no se usa para consultar).
   Multimedia en filesystem local (rutas en SQLite, nunca BLOBs).
-- **Backend anterior (Rust/Tauri 2)**: sigue en `src-tauri/` + `migrations/` solo para
-  comparar comportamiento. No se desarrolla más ahí.
+- **Backend anterior (Rust/Tauri 2)**: vive solo en la rama `main`, como referencia para
+  comparar comportamiento (allí `run.bat` lo lanza). En esta rama `src-tauri/` no existe.
+  No se desarrolla más.
 
 ## Reglas de arquitectura (no negociables)
 
@@ -65,7 +66,8 @@ calendiario - app/
 │   │                         CalendiarioDbContext.cs (solo esquema) · Migrations/
 │   └── Modules/Auth/         Profile · ProfileRepository · ProfileService · ProfileEndpoints
 ├── .config/dotnet-tools.json dotnet-ef (herramienta local)
-└── src-tauri/  migrations/   backend Rust anterior (solo referencia)
+└── migrations/               .sql de SQLx de la versión Rust: SIN USO en esta rama (nada
+                              los lee; el esquema lo llevan las migraciones de EF Core)
 ```
 
 Alias TS/Vite: `@/*` → `src/*`.

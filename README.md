@@ -16,8 +16,8 @@ cd calendiario
 ## 1. Requisitos
 
 - Node.js 22 o superior
-- Rust (vía [rustup](https://rustup.rs)) — la versión exacta está fijada en `src-tauri/rust-toolchain.toml`
-- Requisitos de Tauri para tu sistema operativo: <https://tauri.app/start/prerequisites/>
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- Windows con WebView2 Runtime (incluido de serie en Windows 11)
 
 ## 2. Instalar dependencias
 
@@ -25,23 +25,26 @@ cd calendiario
 npm install
 ```
 
-Las dependencias de Rust se descargan y compilan solas en la primera ejecución.
+Los paquetes NuGet del backend se descargan solos en la primera compilación.
 
 ## 3. Ejecutar en desarrollo
 
-```bash
-npm run tauri dev
-```
-
-En Windows también sirve el doble clic en `run.bat`.
-
-## 4. Compilar el instalador
+Doble clic en `run.bat`, o a mano:
 
 ```bash
-npm run tauri build
+npm run build
+dotnet build src-dotnet
+src-dotnet\bin\Debug\net9.0\Calendiario.exe
 ```
 
-Genera el `.msi` / `.exe` en `src-tauri/target/release/bundle/`.
+## 4. Compilar en Release
+
+```bash
+npm run build
+dotnet build src-dotnet -c Release
+```
+
+Genera `Calendiario.exe` en `src-dotnet/bin/Release/net9.0/`. El instalador aún no está hecho.
 
 ---
 
@@ -64,7 +67,7 @@ El proyecto está en desarrollo. Estas son las capacidades del producto; el avan
 
 # Arquitectura
 
-Monolito modular por capas. El frontend nunca accede a la base de datos: toda lectura y escritura pasa por el backend de Rust.
+Monolito modular por capas. El frontend nunca accede a la base de datos: toda lectura y escritura pasa por el backend de C#/.NET. Un único proceso sirve la interfaz y una API interna solo en `127.0.0.1`, y Photino.NET la muestra en una ventana nativa.
 
 ```
 calendiario
@@ -77,12 +80,12 @@ calendiario
 │   ├── lib · hooks · stores · types
 │   └── main.tsx · App.tsx · index.css
 │
-├── src-tauri               Backend (Rust)
-│   ├── src/lib.rs           arranque + registro de comandos
-│   ├── src/modules          mismos dominios que features/, en capas:
-│   │                        model · repository · service · commands
-│   ├── capabilities         permisos de la ventana
-│   └── tauri.conf.json      configuración de la aplicación
+├── src-dotnet              Backend (C# / .NET)
+│   ├── Program.cs           arranque: servidor local + ventana + seguridad
+│   ├── Modules              mismos dominios que features/, en capas:
+│   │                        Model · Repository · Service · Endpoints
+│   ├── Data                 conexión a SQLite + migraciones del esquema
+│   └── Calendiario.csproj   configuración del proyecto
 │
 ├── README.md
 ├── CLAUDE.md                reglas de arquitectura del proyecto
@@ -97,13 +100,13 @@ calendiario
 ```
 El usuario abre un día en el calendario
 ↓
-El frontend llama a un comando:  invoke("get_day", { date })
+El frontend llama a la API interna:  getDay(date)  →  GET /api/days/{date}
 ↓
-Tauri enruta la llamada al comando de Rust correspondiente
+ASP.NET Core enruta la petición al endpoint correspondiente
 ↓
-commands.rs  →  service.rs (lógica)  →  repository.rs (SQL)
+Endpoints  →  Service (lógica)  →  Repository (SQL)
 ↓
-SQLx consulta calendiario.db y obtiene los datos del día
+Dapper consulta calendiario.db y obtiene los datos del día
 y las rutas de su multimedia
 ↓
 Las fotos y vídeos se leen del sistema de archivos local
@@ -115,21 +118,22 @@ El día completo vuelve al frontend y se renderiza
 
 # Tecnologías
 
-- Tauri 2
-- Rust
+- C# · .NET 9
+- ASP.NET Core (Minimal API)
+- Photino.NET
 - React 19 · TypeScript
 - Vite
 - Tailwind CSS v4 · shadcn/ui
 - Zustand
 - date-fns
 - Recharts
-- SQLite · SQLx
+- SQLite · Dapper · EF Core (migraciones)
 
 ---
 
 # Estado del proyecto
 
-En desarrollo activo. La **Fase 1 (Fundación)** está completa: toolchain, arquitectura, estructura de carpetas, sistema de estilos y herramientas de calidad (ESLint, Prettier, `cargo fmt`).
+En desarrollo activo. La **Fase 1 (Fundación)** está completa: toolchain, arquitectura, estructura de carpetas, sistema de estilos y herramientas de calidad (ESLint, Prettier).
 
 El resto del roadmap —vistas de calendario, base de datos, multimedia, métricas y analítica— está en construcción.
 

@@ -87,6 +87,7 @@ Alias TS/Vite: `@/*` → `src/*`.
 ```
 npm run build                          # frontend → dist/ (hacer ANTES de compilar el C#)
 dotnet run --project src-dotnet        # app en Debug, entorno Development, API en :5180
+npm run dev                            # UI con recarga en caliente (Vite, :1420), /api → :5180
 dotnet build src-dotnet -c Release     # build Release (WinExe, sin consola ni DevTools)
 dotnet tool restore                    # instala dotnet-ef tras clonar
 dotnet ef migrations add <Nombre> --project src-dotnet --output-dir Data/Migrations
@@ -96,8 +97,11 @@ npx shadcn@latest add <componente>     # añadir componente de UI
 `run.bat` (doble clic) = `npm run build` + `dotnet build src-dotnet` + abre el `.exe` de
 Debug; si falla un paso, se para. En la rama `main`, `run.bat` sigue lanzando la versión Tauri.
 
-`npm run dev` (Vite en :1420) sirve la UI sola, pero sin backend: las llamadas a `/api`
-fallan con "Respuesta inesperada del servidor…" (no hay proxy configurado todavía).
+Desarrollo del frontend con recarga en caliente: dos terminales, `dotnet run --project
+src-dotnet` (backend en :5180; también abre su ventana con el `dist/` compilado) y
+`npm run dev` (Vite en :1420, proxy de `/api` → :5180), y abrir `http://localhost:1420`
+en el navegador. Si el backend no está arrancado, las llamadas a `/api` fallan (502 del
+proxy → "Error 502" en `api.ts`).
 
 `StaticWebAssetsEnabled=false` en el `.csproj` es necesario: con los static web assets
 activos, `dotnet run` (Development) revienta al arrancar buscando `src-dotnet/wwwroot/`.

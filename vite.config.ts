@@ -6,6 +6,9 @@ import tailwindcss from "@tailwindcss/vite";
 
 const host = process.env.TAURI_DEV_HOST;
 
+// Puerto fijo del backend en desarrollo (`DevPort` en src-dotnet/Program.cs).
+const BACKEND_DEV_URL = "http://127.0.0.1:5180";
+
 // https://vite.dev/config/
 export default defineConfig(() => ({
   plugins: [react(), tailwindcss()],
@@ -36,6 +39,16 @@ export default defineConfig(() => ({
     watch: {
       // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
+    },
+    // `npm run dev` sirve solo la UI: cualquier /api/* se reenvía al backend de
+    // C# arrancado aparte con `dotnet run --project src-dotnet`.
+    proxy: {
+      "/api": {
+        target: BACKEND_DEV_URL,
+        // Host: 127.0.0.1:5180 en vez de localhost:<puerto de Vite>, el mismo
+        // que vería el backend sin proxy (AllowedHosts en Program.cs).
+        changeOrigin: true,
+      },
     },
   },
 }));

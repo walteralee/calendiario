@@ -1,7 +1,5 @@
 dist
 node_modules
 package-lock.json
-src-tauri/target
-src-tauri/gen
-src-tauri/Cargo.lock
+.config/dotnet-tools.json
 src/components/ui

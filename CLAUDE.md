@@ -10,7 +10,10 @@ Responder en español.
 
 ## Stack
 
-- **Frontend**: React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui + Zustand + date-fns + Recharts.
+- **Frontend**: React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui + React Router.
+  **Previstos, NO instalados todavía** (no están en `package.json`): Zustand (stores),
+  date-fns (fechas del calendario), Recharts (gráficas de analytics). Instalarlos cuando
+  llegue la fase que los use, acordándolo antes.
 - **Backend (activo)**: C# / .NET 9 en `src-dotnet/`, un solo proceso:
   - **Kestrel** (ASP.NET Core, Minimal API) en `127.0.0.1`: sirve el frontend compilado
     (`dist/` → `wwwroot/`, con fallback de SPA) y la API `/api/*`. Todo es mismo origen.
@@ -59,7 +62,7 @@ calendiario - app/
 │   ├── features/   auth calendar journal media tasks events metrics analytics search settings
 │   ├── pages/      Welcome AppHome (+ YearView MonthView WeekView DayView Analytics)
 │   ├── lib/        utils.ts (cn), api.ts (una función por endpoint)
-│   ├── hooks/  stores/ (Zustand)  types/
+│   ├── hooks/  stores/ (Zustand, aún sin instalar)  types/
 │   └── assets/
 ├── src-dotnet/               BACKEND (C#)
 │   ├── Program.cs            Kestrel + CSP + estáticos/fallback SPA + Photino + log a fichero
@@ -87,7 +90,7 @@ Alias TS/Vite: `@/*` → `src/*`.
 ```
 npm run build                          # frontend → dist/ (hacer ANTES de compilar el C#)
 dotnet run --project src-dotnet        # app en Debug, entorno Development, API en :5180
-npm run dev                            # UI con recarga en caliente (Vite, :1420), /api → :5180
+npm run dev                            # UI con recarga en caliente (Vite, :5173), /api → :5180
 dotnet build src-dotnet -c Release     # build Release (WinExe, sin consola ni DevTools)
 dotnet tool restore                    # instala dotnet-ef tras clonar
 dotnet ef migrations add <Nombre> --project src-dotnet --output-dir Data/Migrations
@@ -99,7 +102,7 @@ Debug; si falla un paso, se para. En la rama `main`, `run.bat` sigue lanzando la
 
 Desarrollo del frontend con recarga en caliente: dos terminales, `dotnet run --project
 src-dotnet` (backend en :5180; también abre su ventana con el `dist/` compilado) y
-`npm run dev` (Vite en :1420, proxy de `/api` → :5180), y abrir `http://localhost:1420`
+`npm run dev` (Vite en :5173, proxy de `/api` → :5180), y abrir `http://localhost:5173`
 en el navegador. Si el backend no está arrancado, las llamadas a `/api` fallan (502 del
 proxy → "Error 502" en `api.ts`).
 

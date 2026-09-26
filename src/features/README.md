@@ -9,8 +9,9 @@ Estructura recomendada dentro de cada feature:
     <feature>/
     ├── components/        componentes propios de este dominio
     ├── hooks/             hooks de React propios de este dominio
-    ├── <feature>.api.ts   llamadas invoke() a los comandos Rust de este dominio
-    ├── types.ts           tipos TS de este dominio (espejo de los structs de Rust)
+    ├── types.ts           tipos TS de este dominio (espejo de los records de C#)
     └── index.ts           qué expone la feature al resto de la app
 
-Espeja la misma división que el backend (src-tauri/src/modules/).
+Las llamadas al backend no van aquí: todas pasan por `src/lib/api.ts`.
+
+Espeja la misma división que el backend (src-dotnet/Modules/).

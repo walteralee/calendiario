@@ -18,4 +18,3 @@
 
 # Lockfiles: generados, colapsar en diffs y no contar para estadísticas de lenguaje
 package-lock.json  linguist-generated -diff
-src-tauri/Cargo.lock linguist-generated -diff

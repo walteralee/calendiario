@@ -2,6 +2,6 @@
 
 Utilidades **transversales** (no pertenecen a ningún dominio):
 
-- `invoke.ts` → cliente tipado sobre @tauri-apps/api (envuelve invoke()).
-- `dates.ts` → helpers de fecha sobre date-fns.
-- `cn.ts` → helper de clases para Tailwind (clsx + tailwind-merge), lo pide shadcn/ui.
+- `api.ts` → puente con el backend de C#: una función por endpoint (`fetch` a `/api/*`).
+- `utils.ts` → `cn()`, helper de clases para Tailwind (clsx + tailwind-merge), lo pide shadcn/ui.
+- `dates.ts` (previsto) → helpers de fecha sobre date-fns.

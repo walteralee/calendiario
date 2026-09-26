@@ -12,9 +12,12 @@ Responder en español.
 
 - **Frontend**: React 19 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui + Zustand + date-fns + Recharts.
 - **Backend (activo)**: C# / .NET 9 en `src-dotnet/`, un solo proceso:
-  - **Kestrel** (ASP.NET Core, Minimal API) en `127.0.0.1` con puerto aleatorio: sirve
-    el frontend compilado (`dist/` → `wwwroot/`, con fallback de SPA) y la API `/api/*`.
-    Todo es mismo origen.
+  - **Kestrel** (ASP.NET Core, Minimal API) en `127.0.0.1`: sirve el frontend compilado
+    (`dist/` → `wwwroot/`, con fallback de SPA) y la API `/api/*`. Todo es mismo origen.
+    Puerto: **aleatorio** al abrir el `.exe` (Debug o Release, entorno Production);
+    **fijo 5180** con `dotnet run` (entorno Development vía `Properties/launchSettings.json`),
+    que es el destino del proxy de Vite. Si cambia, cambiarlo en `Program.cs` (`DevPort`)
+    y en `vite.config.ts`.
   - **Photino.NET** solo abre la ventana nativa (WebView2) apuntando a esa URL.
 - **Datos**: SQLite (`calendiario.db`). Consultas con **Dapper** (SQL explícito); esquema
   con **EF Core Migrations** (solo migraciones, EF no se usa para consultar).
@@ -64,7 +67,8 @@ calendiario - app/
 │   ├── Assets/app-icon.ico   icono (de ../app-icon.svg): .exe (ApplicationIcon) + ventana (SetIconFile)
 │   ├── Data/                 Database.cs (carpeta de datos, migrar, conexiones)
 │   │                         CalendiarioDbContext.cs (solo esquema) · Migrations/
-│   └── Modules/Auth/         Profile · ProfileRepository · ProfileService · ProfileEndpoints
+│   ├── Modules/Auth/         Profile · ProfileRepository · ProfileService · ProfileEndpoints
+│   └── Properties/launchSettings.json   `dotnet run` → entorno Development (puerto 5180)
 └── .config/dotnet-tools.json dotnet-ef (herramienta local)
 ```
 
@@ -82,7 +86,7 @@ Alias TS/Vite: `@/*` → `src/*`.
 
 ```
 npm run build                          # frontend → dist/ (hacer ANTES de compilar el C#)
-dotnet run --project src-dotnet        # app en Debug (consola + DevTools)
+dotnet run --project src-dotnet        # app en Debug, entorno Development, API en :5180
 dotnet build src-dotnet -c Release     # build Release (WinExe, sin consola ni DevTools)
 dotnet tool restore                    # instala dotnet-ef tras clonar
 dotnet ef migrations add <Nombre> --project src-dotnet --output-dir Data/Migrations
@@ -94,6 +98,9 @@ Debug; si falla un paso, se para. En la rama `main`, `run.bat` sigue lanzando la
 
 `npm run dev` (Vite en :1420) sirve la UI sola, pero sin backend: las llamadas a `/api`
 fallan con "Respuesta inesperada del servidor…" (no hay proxy configurado todavía).
+
+`StaticWebAssetsEnabled=false` en el `.csproj` es necesario: con los static web assets
+activos, `dotnet run` (Development) revienta al arrancar buscando `src-dotnet/wwwroot/`.
 
 Frontend: `api.ts` siempre lanza un string al fallar (no 2xx, sin conexión, 2xx no-JSON), y
 todo `catch` de un componente debe dejar rastro con `console.error` — nunca tragarse el error.

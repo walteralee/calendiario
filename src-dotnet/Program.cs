@@ -25,6 +25,10 @@ public static class Program
         "base-uri 'self'; " +
         "form-action 'none'";
 
+    // Puerto de la API en desarrollo. Si se cambia, cambiarlo también en el
+    // proxy de vite.config.ts.
+    private const int DevPort = 5180;
+
     // Photino (WebView2) exige un hilo STA en Windows.
     [STAThread]
     public static void Main(string[] args)
@@ -73,9 +77,14 @@ public static class Program
 
         builder.Logging.AddSerilog(fileLog);
 
-        // Solo loopback, puerto libre elegido por el sistema (0): nada escucha
-        // hacia fuera y no hay choques con otro programa que use un puerto fijo.
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        // Solo loopback: nada escucha hacia fuera.
+        // - Entorno Development (`dotnet run`, vía Properties/launchSettings.json):
+        //   puerto fijo, el destino del proxy de Vite (vite.config.ts).
+        // - Cualquier otro (el .exe, sea Debug o Release): puerto libre elegido por
+        //   el sistema (0), sin choques con otro programa que use un puerto fijo.
+        builder.WebHost.UseUrls(builder.Environment.IsDevelopment()
+            ? $"http://127.0.0.1:{DevPort}"
+            : "http://127.0.0.1:0");
 
         // Rechaza (400) cualquier petición cuya cabecera Host no sea local. Protege
         // contra DNS rebinding: una web abierta en el navegador con un dominio que
@@ -118,7 +127,8 @@ public static class Program
 
         // Con el puerto 0, la dirección real solo se conoce tras arrancar.
         var url = app.Urls.First();
-        fileLog.Information("Calendiario escuchando en {Url} · datos en {DataDir}", url, dataDir);
+        fileLog.Information("Calendiario escuchando en {Url} · entorno {Environment} · datos en {DataDir}",
+            url, app.Environment.EnvironmentName, dataDir);
 
         var window = new PhotinoWindow()
             .SetTitle("Calendiario")

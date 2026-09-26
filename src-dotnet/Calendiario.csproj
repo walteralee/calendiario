@@ -11,6 +11,11 @@
     <!-- Icono incrustado en Calendiario.exe (explorador de archivos). Mismo icono
          de marca que la versión Tauri: generado de ../app-icon.svg. -->
     <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
+    <!-- Sin "static web assets": nuestro wwwroot es el dist/ copiado (abajo), no
+         una carpeta src-dotnet/wwwroot. Con ellos activos, en entorno Development
+         (`dotnet run`) ASP.NET Core busca esa carpeta al arrancar y revienta
+         con DirectoryNotFoundException. -->
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
 
   <ItemGroup>
